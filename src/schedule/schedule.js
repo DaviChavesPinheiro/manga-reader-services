@@ -1,25 +1,25 @@
 const cron = require('node-cron');
 const axios = require('axios')
-const data = require('./mangas.json')
+// const data = require('./mangas.json')
 
 
 module.exports = app => {
     const {Manga} = app
     
-    if (data && typeof data === "object") {
-        const mangas = data.map((manga) => {
-            return {
-                title: manga.title,
-                description: manga.description,
-                image_url: manga.img,
-                chapters: manga.chapters,
-                chapters_amount: parseInt(manga.chapters.length),
-                members: parseInt(manga.members.replace(',', '')),
-                score: parseFloat(manga.score.replace(',', ''))
-            }
-        })
-        // Manga.insertMany(mangas)
-    }
+    // if (data && typeof data === "object") {
+    //     const mangas = data.map((manga) => {
+    //         return {
+    //             title: manga.title,
+    //             description: manga.description,
+    //             image_url: manga.img,
+    //             chapters: manga.chapters,
+    //             chapters_amount: parseInt(manga.chapters.length),
+    //             members: parseInt(manga.members.replace(',', '')),
+    //             score: parseFloat(manga.score.replace(',', ''))
+    //         }
+    //     })
+    //     // Manga.insertMany(mangas)
+    // }
 
 
     // const getMangaList = async () => {
