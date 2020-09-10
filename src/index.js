@@ -4,7 +4,7 @@ const consign = require('consign')
 const bodyParser = require('body-parser')
 require("dotenv").config()
 
-const port = 8080
+const port = process.env.PORT || 8080
 app.use(cors())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
