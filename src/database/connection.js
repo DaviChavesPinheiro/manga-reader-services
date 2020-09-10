@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/manga-reader', { useNewUrlParser: true, useUnifiedTopology: true });
+
+mongoose.connect(process.env.MONGO_DB_CONNECTION, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // module.exports = (app) => {
 //     app.teste = 10

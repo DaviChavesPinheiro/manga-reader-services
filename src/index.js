@@ -2,6 +2,7 @@ const app = require('express')()
 const cors = require('cors')
 const consign = require('consign')
 const bodyParser = require('body-parser')
+require("dotenv").config()
 
 const port = 8080
 app.use(cors())
@@ -16,5 +17,5 @@ consign()
     .then('./src/routes')
     .into(app)
 
-
+console.log(process.env)
 app.listen(port, () => console.log(`Servidor Rodando na porta ${port} ` + new Date().toLocaleTimeString()))
