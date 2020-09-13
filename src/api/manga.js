@@ -15,8 +15,7 @@ module.exports = app => {
         if(req.query.select) {
             query.select(req.query.select.replace(',', " "))
         }
-        
-        if(req.query.select && !req.query.select.includes('chapters')){
+        if(!req.query.select || !req.query.select.includes('chapters')){
             query.select("-chapters.url -chapters.pages")
         }
 
