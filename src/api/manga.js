@@ -1,9 +1,13 @@
 module.exports = app => {
 
     const get = (req, res) => {
-        const sort = req.query.sort === "asc" ? "asc" : "desc"
-        
-        app.Manga.find({}).sort({score: sort}).select("-chapters -description").exec().then(data => {
+        const query = app.Manga.find({})
+
+        if(req.query.sort){
+            query.sort(req.query.sort)
+        }
+
+        query.select("-chapters -description").exec().then(data => {
             res.status(200).json(data)
         })
     }

@@ -17,5 +17,4 @@ consign()
     .then('./src/routes')
     .into(app)
 
-console.log(process.env)
 app.listen(port, () => console.log(`Servidor Rodando na porta ${port} ` + new Date().toLocaleTimeString()))
