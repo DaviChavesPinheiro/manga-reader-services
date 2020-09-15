@@ -3,6 +3,10 @@ module.exports = app => {
     const get = (req, res) => {
         const query = app.Manga.find({})
 
+        if(req.query.find){
+            query.find({ "title" : { $regex: req.query.find+"*", $options: 'i' }})
+        }
+
         if(req.query.sort){
             query.sort(req.query.sort)
         }
