@@ -10,6 +10,10 @@ module.exports = app => {
         if(req.query.sort){
             query.sort(req.query.sort)
         }
+        
+        if(req.query.select) {
+            query.select(req.query.select.replace(',', " "))
+        }
 
         query.select("-chapters -description").exec().then(data => {
             res.status(200).json(data)
