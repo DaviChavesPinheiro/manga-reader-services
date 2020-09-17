@@ -3,7 +3,8 @@ module.exports = app => {
     const get = (req, res) => {
         // console.log(req.query)/:/g
         const select = req.query.select ? req.query.select.replace(new RegExp(',', 'g'), " ") : "title image_url chapters_amount members score"
-        // console.log(select)
+        const page = req.query.page || 1
+        const limit = 20
         const query = app.Manga.find({})
 
         if(req.query.find){
@@ -18,7 +19,7 @@ module.exports = app => {
             query.select(req.query.select.replace(',', " "))
         }
 
-        query.select(select).exec().then(data => {
+        query.select(select).limit(limit).skip(page * limit - limit).exec().then(data => {
             res.status(200).json(data)
         })
     }
