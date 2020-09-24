@@ -2,12 +2,18 @@ const restful = require('node-restful')
 const mongoose = restful.mongoose
 
 const mangaSchema = new mongoose.Schema({
+    _id: Number,
     title: String,
     description: String,
     image_url: String,
     chapters_amount: Number,
     chapters: [],
     members: Number,
+    volumes: Number,
+    status: String,
+    published: String,
+    genres: String,
+    authors: String,
     score: Number
 });
 
