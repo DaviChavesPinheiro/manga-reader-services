@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const axios = require('axios')
 const data = require('./mangas.json')
-const fs = require('fs')
+// const fs = require('fs')
 
 module.exports = async app => {
     const { Manga } = app
@@ -41,18 +41,18 @@ module.exports = async app => {
             }
         })
         
-        // mangas.forEach(async manga => {
-        //     const mangaDB = await Manga.findOne({_id: manga._id}).exec()
-        //     if(mangaDB){
-        //         Manga.findOne({_id: manga._id}).update(manga).exec().then(res => {
-        //             console.log(`Updated ${manga.title}`)
-        //         })
-        //     } else {
-        //         Manga.create(manga).then(res => {
-        //             console.log(`Added ${manga.title}`)
-        //         })
-        //     }
-        // })
+        mangas.forEach(async manga => {
+            const mangaDB = await Manga.findOne({_id: manga._id}).exec()
+            if(mangaDB){
+                Manga.findOne({_id: manga._id}).updateOne(manga).exec().then(res => {
+                    console.log(`Updated ${manga.title}`)
+                })
+            } else {
+                Manga.create(manga).then(res => {
+                    console.log(`Added ${manga.title}`)
+                })
+            }
+        })
         // const manga = await Manga.findOne({}).exec()
         // console.log(manga)
         // const dataMangas = await Manga.find({ chapters_amount: { $gt: 0 }}).exec()
