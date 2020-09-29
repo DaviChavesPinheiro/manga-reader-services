@@ -61,29 +61,43 @@ module.exports = async app => {
 
         // const intervalID = setInterval(() => {
         //     const manga = mangas.shift()
-        //     if(manga === undefined) return clearInterval(intervalID)
+        //     if (manga === undefined) return clearInterval(intervalID)
         //     // console.log(manga.title)
         //     axios.get(`https://api.jikan.moe/v3/manga/${manga._id}`).then(res => {
-        //         const malManga = mapJikanManga(res.data)
+        //         let malManga = res.data
 
-        //         const mangaToUpdate = compareMangas(manga, malManga)
-        //         console.log(malManga.title, mangaToUpdate)
-        //         if (Object.keys(mangaToUpdate).length) {
-        //             Manga.findOne({ _id: manga._id }).updateOne(mangaToUpdate).exec().then(res => {
-        //                 console.log(`Updated ${malManga.title}`)
+        //         setTimeout(() => {
+        //             // console.log(mangas.length)
+        //             axios.get(`https://api.jikan.moe/v3/manga/${manga._id}/recommendations`).then(res2 => {
+        //                 malManga.recommendations = res2.data.recommendations
+        //                 malManga = mapJikanManga(malManga)
+        //                 // console.log(malManga)
+        //                 const mangaToUpdate = compareMangas(manga, malManga)
+        //                 console.log(malManga.title, mangaToUpdate)
+        //                 if (Object.keys(mangaToUpdate).length) {
+        //                     Manga.findOne({ _id: manga._id }).updateOne(mangaToUpdate).exec().then(res => {
+        //                         console.log(`Updated ${malManga.title}`)
+        //                     }).catch(error => {
+        //                         console.log("Atlas Update ERROR")
+        //                         console.log(error)
+        //                     })
+        //                 } else {
+        //                     console.log(`${manga.title} is updated!`)
+        //                 }
         //             }).catch(error => {
-        //                 console.log("Atlas Update ERROR")
+        //                 console.log("Jikan Recomendations ERROR")
         //                 console.log(error)
         //             })
-        //         } else {
-        //             console.log(`${manga.title} is updated!`)
-        //         }
+        //         }, 1000)
+
+
+
 
         //     }).catch(error => {
         //         console.log("Jikan ERROR")
         //         console.log(error)
         //     })
-        // }, 1000)
+        // }, 2000)
 
         // mangas.forEach(manga => {
         //     axios.get(`https://api.jikan.moe/v3/manga/${manga._id}`).then(res => {
@@ -138,10 +152,11 @@ function mapJikanManga(manga) {
         published: manga.published.string,
         genres: manga.genres,
         authors: manga.authors,
-        members: manga.members,
-        volumes: manga.volumes,
-        score: manga.score,
+        members: manga.members || 0,
+        volumes: manga.volumes || 0,
+        score: manga.score || 0,
         publishing: manga.publishing,
+        recommendations: manga.recommendations.slice(0, 5)
     }
 }
 
@@ -168,7 +183,7 @@ function compareMangas(manga, malManga) {
 }
 
 function deepEqual(object1, object2) {
-    if(object1 === undefined || object1 === null || object2 === undefined || object2 === null) return false
+    if (object1 === undefined || object1 === null || object2 === undefined || object2 === null) return false
     const keys1 = Object.keys(object1);
     const keys2 = Object.keys(object2);
 
