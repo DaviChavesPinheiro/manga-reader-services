@@ -12,8 +12,9 @@ const mangaSchema = new mongoose.Schema({
     volumes: Number,
     status: String,
     published: String,
-    genres: String,
-    authors: String,
+    publishing: Boolean,
+    genres: [],
+    authors: [],
     score: Number
 });
 

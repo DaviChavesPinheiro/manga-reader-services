@@ -1,7 +1,6 @@
 module.exports = app => {
 
     const get = (req, res) => {
-        // console.log(req.query)/:/g
         const select = req.query.select ? req.query.select.replace(new RegExp(',', 'g'), " ") : "_id title image_url chapters_amount members score"
         const page = req.query.page || 1
         const limit = 20
