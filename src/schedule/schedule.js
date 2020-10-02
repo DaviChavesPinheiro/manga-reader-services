@@ -1,146 +1,123 @@
 const cron = require('node-cron');
 const axios = require('axios')
-const data = require('./mangas.json');
-const manga = require('../api/manga');
-// const fs = require('fs')
+const mangas = require('./mangas.json');
 
 module.exports = async app => {
     const { Manga } = app
 
-    // data.forEach(manga => {
-    //     // console.log(manga.title, manga.volumes)
-    //     Manga.findOne({title: manga.title}).update({
-    //         chapters: manga.chapters,
-    //         volumes: parseInt(manga.volumes.replace(',', '').replace(/\D/g,'') || 0),
-    //         status: manga.status,
-    //         published: manga.published,
-    //         genres: manga.genres,
-    //         authors: manga.authors,
-    //         chapters_amount: manga.chapters.length
-    //     }).exec().then(res => {
-    //         console.log(manga.title)
-    //     })
 
-    // })
-
-    if (data && typeof data === "object") {
-        // const mangas = data.map((manga) => {
-        //     return {
-        //         _id: parseInt(manga.id),
-        //         title: manga.title,
-        //         description: manga.description,
-        //         image_url: manga.image_url,
-        //         chapters: manga.chapters,
-        //         chapters_amount: parseInt(manga.chapters.length),
-        //         status: manga.status,
-        //         published: manga.published,
-        //         genres: manga.genres,
-        //         authors: manga.authors,
-        //         members: parseInt(manga.members.replace(',', '')),
-        //         volumes: parseInt(manga.volumes.replace(',', '').replace(/\D/g,'') || 0),
-        //         score: parseFloat(manga.score.replace(',', ''))
-        //     }
-        // })
-
-        // mangas.forEach(async manga => {
-        //     const mangaDB = await Manga.findOne({_id: manga._id}).exec()
-        //     if(mangaDB){
-        //         Manga.findOne({_id: manga._id}).updateOne(manga).exec().then(res => {
-        //             console.log(`Updated ${manga.title}`)
-        //         })
-        //     } else {
-        //         Manga.create(manga).then(res => {
-        //             console.log(`Added ${manga.title}`)
-        //         })
-        //     }
-        // })
-
-        // const mangasAmount = await Manga.find({}).countDocuments()
-
-        // const mangas = await Manga.find({}).select("-chapters").limit(100)
-
-        // const intervalID = setInterval(() => {
-        //     const manga = mangas.shift()
-        //     if (manga === undefined) return clearInterval(intervalID)
-        //     // console.log(manga.title)
-        //     axios.get(`https://api.jikan.moe/v3/manga/${manga._id}`).then(res => {
-        //         let malManga = res.data
-
-        //         setTimeout(() => {
-        //             // console.log(mangas.length)
-        //             axios.get(`https://api.jikan.moe/v3/manga/${manga._id}/recommendations`).then(res2 => {
-        //                 malManga.recommendations = res2.data.recommendations
-        //                 malManga = mapJikanManga(malManga)
-        //                 // console.log(malManga)
-        //                 const mangaToUpdate = compareMangas(manga, malManga)
-        //                 console.log(malManga.title, mangaToUpdate)
-        //                 if (Object.keys(mangaToUpdate).length) {
-        //                     Manga.findOne({ _id: manga._id }).updateOne(mangaToUpdate).exec().then(res => {
-        //                         console.log(`Updated ${malManga.title}`)
-        //                     }).catch(error => {
-        //                         console.log("Atlas Update ERROR")
-        //                         console.log(error)
-        //                     })
-        //                 } else {
-        //                     console.log(`${manga.title} is updated!`)
-        //                 }
-        //             }).catch(error => {
-        //                 console.log("Jikan Recomendations ERROR")
-        //                 console.log(error)
-        //             })
-        //         }, 1000)
-
-
-
-
-        //     }).catch(error => {
-        //         console.log("Jikan ERROR")
-        //         console.log(error)
-        //     })
-        // }, 2000)
-
-        // mangas.forEach(manga => {
-        //     axios.get(`https://api.jikan.moe/v3/manga/${manga._id}`).then(res => {
-        //         const malManga = mapJikanManga(res.data)
-
-        //         const mangaToUpdate = compareMangas(manga, malManga)
-        //         console.log(malManga.title, mangaToUpdate)
-        //         if (Object.keys(mangaToUpdate).length) {
-        //             Manga.findOne({ _id: manga._id }).updateOne(mangaToUpdate).exec().then(res => {
-        //                 console.log(`Updated ${malManga.title}`)
-        //             }).catch(error => {
-        //                 console.log("Atlas Update ERROR")
-        //                 console.log(error)
-        //             })
-        //         } else {
-        //             console.log(`${manga.title} is updated!`)
-        //         }
-
-        //     }).catch(error => {
-        //         console.log("Jikan ERROR")
-        //         console.log(error)
-        //     })
-        // });
-
-
-
-
-        // const manga = await Manga.findOne({}).exec()
-        // console.log(manga)
-        // const dataMangas = await Manga.find({ chapters_amount: { $gt: 0 }}).exec()
-        // console.log(dataMangas)
-        // const jsonString = JSON.stringify(dataMangas)
-        // fs.writeFile('./dataMangas.json', jsonString, err => {
-        //     if (err) {
-        //         console.log('Error writing file', err)
-        //     } else {
-        //         console.log('Successfully wrote file')
-        //     }
-        // })
-        // Manga.insertMany(mangas)
+    if (mangas && typeof mangas === "object") {
+        mangas.forEach(async manga => {
+            const mangaDB = await Manga.findOne({ _id: manga.mal_id }).exec()
+            if (!mangaDB) {
+                const malManga = await getMalManga(manga.mal_id)
+                const completeManga = {
+                    ...malManga,
+                    chapters: manga.chapters,
+                    chapters_amount:  manga.chapters.length
+                }
+                console.log(completeManga.title, Object.keys(completeManga))
+                Manga.create(completeManga).then(res => {
+                    console.log(`Added ${completeManga.title}`)
+                })
+            } else {
+                console.log(`${mangaDB.title} aready exists`)
+            }
+        })
     }
 
+    async function getMalManga(id) {
+        let malManga = {}
+        await axios.get(`https://api.jikan.moe/v3/manga/${id}`)
+            .then(res => {
+                malManga = res.data
+                sleep(1000)
+                return axios.get(`https://api.jikan.moe/v3/manga/${id}/recommendations`)
+            })
+            .then(res => {
+                malManga = { ...malManga, recommendations: res.data.recommendations }
+                sleep(1000)
+                return axios.get(`https://api.jikan.moe/v3/manga/${id}/characters`)
+            })
+            .then(res => {
+                malManga = { ...malManga, characters: res.data.characters }
+                return malManga
+            })
+            .then(res => {
+                malManga = mapJikanManga(res)
+                return malManga
+            })
+        return malManga
+    }
+    
+    cron.schedule('0 0 0 * * *', () => {
+        console.log('running a task every day');
+        update()
+    });
+
+    async function update() {
+        const mangasAmount = await Manga.find({}).countDocuments()
+
+        const mangas = await Manga.find({}).sort({ _id: 1 }).select("-chapters").limit(100)
+
+        updateManga(mangas)
+    }
+
+    function updateManga(mangas) {
+        console.log("left: ", mangas.length)
+        const manga = mangas.shift()
+        let malManga = {}
+        if (manga === undefined) return
+        axios.get(`https://api.jikan.moe/v3/manga/${manga._id}`)
+            .then(res => {
+                malManga = res.data
+                sleep(1000)
+                return axios.get(`https://api.jikan.moe/v3/manga/${manga._id}/recommendations`)
+            })
+            .then(res => {
+                malManga = { ...malManga, recommendations: res.data.recommendations }
+                sleep(1000)
+                return axios.get(`https://api.jikan.moe/v3/manga/${manga._id}/characters`)
+            })
+            .then(res => {
+                malManga = { ...malManga, characters: res.data.characters }
+                return malManga
+            })
+            .then(res => {
+                malManga = mapJikanManga(res)
+                const mangaToUpdate = compareMangas(manga, malManga)
+
+
+                if (Object.keys(mangaToUpdate).length) {
+                    console.log(malManga.title, Object.keys(mangaToUpdate))
+                    Manga.findOne({ _id: manga._id }).updateOne(mangaToUpdate).exec().then(res => {
+                        console.log(`Updated ${malManga.title}`)
+                    }).catch(error => {
+                        console.log("Atlas Update ERROR MANGA: ", manga.title)
+                        console.log(error)
+                    })
+                } else {
+                    console.log(`${manga.title} is updated!`)
+                }
+
+            }).catch(error => {
+                console.log("Jikan ERROR")
+                console.log(error)
+            }).finally(() => {
+                updateManga(mangas)
+            })
+    }
 }
+
+function sleep(milliseconds) {
+    var start = new Date().getTime();
+    for (var i = 0; i < 1e7; i++) {
+        if ((new Date().getTime() - start) > milliseconds) {
+            break;
+        }
+    }
+}
+
 
 function mapJikanManga(manga) {
     return {
@@ -150,40 +127,46 @@ function mapJikanManga(manga) {
         image_url: manga.image_url,
         status: manga.status,
         published: manga.published.string,
-        genres: manga.genres,
-        authors: manga.authors,
+        publishing: manga.publishing,
         members: manga.members || 0,
         volumes: manga.volumes || 0,
         score: manga.score || 0,
-        publishing: manga.publishing,
-        recommendations: manga.recommendations.slice(0, 5)
+        authors: manga.authors || [],
+        genres: manga.genres || [],
+        recommendations: manga.recommendations.slice(0, 5),
+        characters: manga.characters.slice(0, 8),
     }
 }
 
 function compareMangas(manga, malManga) {
     const mangaToUpdate = {}
-    Object.keys(malManga).forEach(key => {
-        if (manga[key] === undefined) {
-            mangaToUpdate[key] = malManga[key]
-        } else {
-            if (Array.isArray(malManga[key]) && Array.isArray(manga[key])) {
-                if (manga[key].length !== malManga[key].length) {
-                    mangaToUpdate[key] = malManga[key]
-                }
-            } else if (typeof malManga[key] === "object") {
-                if (!deepEqual(manga[key], malManga[key])) {
-                    mangaToUpdate[key] = malManga[key]
-                }
-            } else if (manga[key] != malManga[key]) {
-                mangaToUpdate[key] = malManga[key]
-            }
-        }
-    })
+
+    if (manga.title !== malManga.title) mangaToUpdate.title = malManga.title
+    if (manga.description !== malManga.description) mangaToUpdate.description = malManga.description
+    if (manga.image_url !== malManga.image_url) mangaToUpdate.image_url = malManga.image_url
+    if (manga.status !== malManga.status) mangaToUpdate.status = malManga.status
+    if (manga.published !== malManga.published) mangaToUpdate.published = malManga.published
+    if (manga.publishing !== malManga.publishing) mangaToUpdate.publishing = malManga.publishing
+    if (manga.members !== malManga.members) mangaToUpdate.members = malManga.members
+    if (manga.members !== malManga.members) mangaToUpdate.members = malManga.members
+    if (manga.score !== malManga.score) mangaToUpdate.score = malManga.score
+
+    if (!equalArrayOfObjects(manga.authors, malManga.authors)) mangaToUpdate.authors = malManga.authors
+    if (!equalArrayOfObjects(manga.genres, malManga.genres)) mangaToUpdate.genres = malManga.genres
+    if (!equalArrayOfObjects(manga.recommendations, malManga.recommendations)) mangaToUpdate.recommendations = malManga.recommendations
+    if (!equalArrayOfObjects(manga.characters, malManga.characters)) mangaToUpdate.characters = malManga.characters
+
     return mangaToUpdate
 }
 
-function deepEqual(object1, object2) {
-    if (object1 === undefined || object1 === null || object2 === undefined || object2 === null) return false
+function equalArrayOfObjects(array1, array2) {
+    if (array1 === undefined && array2 !== undefined) return false
+    if (array1.length !== array2.length) return false
+    if (array1.some((value, index) => !shallowEqual(value, array2[index]))) return false
+    return true
+}
+
+function shallowEqual(object1, object2) {
     const keys1 = Object.keys(object1);
     const keys2 = Object.keys(object2);
 
@@ -191,22 +174,12 @@ function deepEqual(object1, object2) {
         return false;
     }
 
-    for (const key of keys1) {
-        const val1 = object1[key];
-        const val2 = object2[key];
-        const areObjects = isObject(val1) && isObject(val2);
-        if (
-            areObjects && !deepEqual(val1, val2) ||
-            !areObjects && val1 !== val2
-        ) {
+    for (let key of keys1) {
+        if (object1[key] !== object2[key]) {
             return false;
         }
     }
 
     return true;
-}
-
-function isObject(object) {
-    return object != null && typeof object === 'object';
 }
 
