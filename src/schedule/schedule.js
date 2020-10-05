@@ -81,12 +81,7 @@ module.exports = async app => {
         await page.goto('https://mangayabu.com/manga/vagabond');
 
         const chapters = await page.evaluate(() => {
-            const chaptersElements = document.querySelectorAll(".single-chapter a")
-            const chapters = []
-            chaptersElements.forEach(chapterElement => {
-                chapters.push({ title: chapterElement.textContent, url: chapterElement.href })
-            })
-            return chapters.reverse()
+            return document.querySelectorAll("a").length
         });
         console.log("mangaYabuScrap fim")
         console.log('chapters:', chapters);
