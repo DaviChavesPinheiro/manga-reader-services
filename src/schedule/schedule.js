@@ -69,6 +69,7 @@ module.exports = async app => {
     }
 
     async function mangaYabuScrap() {
+        console.log("mangaYabuScrap inicio")
         const browser = await puppeteer.launch({
             'args': [
                 '--no-sandbox',
@@ -77,7 +78,7 @@ module.exports = async app => {
         });
         const page = await browser.newPage();
         // await page.emulate(iPhone);
-        await page.goto('https://mangayabu.com/manga/vagabond/');
+        await page.goto('https://mangayabu.com/manga/vagabond');
 
         const chapters = await page.evaluate(() => {
             const chaptersElements = document.querySelectorAll(".single-chapter a")
@@ -87,7 +88,7 @@ module.exports = async app => {
             })
             return chapters.reverse()
         });
-
+        console.log("mangaYabuScrap fim")
         console.log('chapters:', chapters);
 
         await browser.close();
