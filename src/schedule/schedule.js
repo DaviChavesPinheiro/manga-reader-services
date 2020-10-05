@@ -1,5 +1,4 @@
 const cron = require('node-cron');
-const puppeteer = require('puppeteer');
 const axios = require('axios')
 const mangas = require('./mangas.json');
 
@@ -15,7 +14,7 @@ module.exports = async app => {
                 const completeManga = {
                     ...malManga,
                     chapters: manga.chapters,
-                    chapters_amount: manga.chapters.length
+                    chapters_amount:  manga.chapters.length
                 }
                 console.log(completeManga.title, Object.keys(completeManga))
                 Manga.create(completeManga).then(res => {
@@ -50,43 +49,18 @@ module.exports = async app => {
             })
         return malManga
     }
-
-    // cron.schedule('0 0 0 * * *', () => {
-    //     console.log('running a task every day');
-    //     update()
-    // });
-
-    update()
+    
+    cron.schedule('0 0 0 * * *', () => {
+        console.log('running a task every day');
+        update()
+    });
 
     async function update() {
         const mangasAmount = await Manga.find({}).countDocuments()
 
-        const mangas = await Manga.find({}).sort({ _id: 1 }).select("-chapters.pages").limit(1).skip(3)
-        console.log("Started")
-        mangaYabuScrap()
-        console.log("Finished")
-        // updateManga(mangas)
-    }
+        const mangas = await Manga.find({}).sort({ _id: 1 }).select("-chapters").limit(100)
 
-    async function mangaYabuScrap() {
-        console.log("mangaYabuScrap inicio")
-        const browser = await puppeteer.launch({
-            'args': [
-                '--no-sandbox',
-                '--disable-setuid-sandbox'
-            ]
-        });
-        const page = await browser.newPage();
-        // await page.emulate(iPhone);
-        await page.goto('https://mangayabu.com/manga/vagabond');
-
-        const chapters = await page.evaluate(() => {
-            return document.querySelectorAll("a").length
-        });
-        console.log("mangaYabuScrap fim")
-        console.log('chapters:', chapters);
-
-        await browser.close();
+        updateManga(mangas)
     }
 
     function updateManga(mangas) {
