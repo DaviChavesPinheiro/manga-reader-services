@@ -1,4 +1,5 @@
 const cron = require('node-cron');
+const puppeteer = require('puppeteer');
 const axios = require('axios')
 const mangas = require('./mangas.json');
 
@@ -14,7 +15,7 @@ module.exports = async app => {
                 const completeManga = {
                     ...malManga,
                     chapters: manga.chapters,
-                    chapters_amount:  manga.chapters.length
+                    chapters_amount: manga.chapters.length
                 }
                 console.log(completeManga.title, Object.keys(completeManga))
                 Manga.create(completeManga).then(res => {
@@ -49,18 +50,42 @@ module.exports = async app => {
             })
         return malManga
     }
-    
-    cron.schedule('0 0 0 * * *', () => {
-        console.log('running a task every day');
-        update()
-    });
+
+    // cron.schedule('0 0 0 * * *', () => {
+    //     console.log('running a task every day');
+    //     update()
+    // });
+
+    update()
 
     async function update() {
         const mangasAmount = await Manga.find({}).countDocuments()
 
-        const mangas = await Manga.find({}).sort({ _id: 1 }).select("-chapters").limit(100)
+        const mangas = await Manga.find({}).sort({ _id: 1 }).select("-chapters.pages").limit(1).skip(3)
+        console.log("Started")
+        mangaYabuScrap()
+        console.log("Finished")
+        // updateManga(mangas)
+    }
 
-        updateManga(mangas)
+    async function mangaYabuScrap() {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        // await page.emulate(iPhone);
+        await page.goto('https://mangayabu.com/manga/vagabond/');
+
+        const chapters = await page.evaluate(() => {
+            const chaptersElements = document.querySelectorAll(".single-chapter a")
+            const chapters = []
+            chaptersElements.forEach(chapterElement => {
+                chapters.push({ title: chapterElement.textContent, url: chapterElement.href })
+            })
+            return chapters.reverse()
+        });
+
+        console.log('chapters:', chapters);
+
+        await browser.close();
     }
 
     function updateManga(mangas) {
