@@ -6,23 +6,29 @@ module.exports = async app => {
     const { Manga } = app
 
 
-    if (mangas && typeof mangas === "object") {
+    if (mangas) {
         mangas.forEach(async manga => {
-            const mangaDB = await Manga.findOne({ _id: manga.mal_id }).exec()
-            if (!mangaDB) {
-                const malManga = await getMalManga(manga.mal_id)
-                const completeManga = {
-                    ...malManga,
-                    chapters: manga.chapters,
-                    chapters_amount:  manga.chapters.length
-                }
-                console.log(completeManga.title, Object.keys(completeManga))
-                Manga.create(completeManga).then(res => {
-                    console.log(`Added ${completeManga.title}`)
-                })
+            if (manga.mal_id === undefined || manga.chapters === undefined || manga.chapters.length === 0 || manga.description === undefined) {
+                console.log("Skiping...")
             } else {
-                console.log(`${mangaDB.title} aready exists`)
+                const mangaDB = await Manga.findOne({ _id: manga.mal_id }).exec()
+                if (!mangaDB) {
+                    const malManga = await getMalManga(manga.mal_id)
+                    const completeManga = {
+                        ...malManga,
+                        chapters: manga.chapters,
+                        chapters_amount: manga.chapters.length,
+                        description: manga.description
+                    }
+                    console.log(completeManga.title, Object.keys(completeManga))
+                    Manga.create(completeManga).then(res => {
+                        console.log(`Added ${completeManga.title}`)
+                    })
+                } else {
+                    console.log(`${mangaDB.title} aready exists`)
+                }
             }
+
         })
     }
 
@@ -58,7 +64,7 @@ module.exports = async app => {
     async function update() {
         const mangasAmount = await Manga.find({}).countDocuments()
 
-        const mangas = await Manga.find({}).sort({ _id: 1 }).select("-chapters").limit(100)
+        const mangas = await Manga.find({}).sort({ _id: 1 }).select("-chapters -description").limit(100)
 
         updateManga(mangas)
     }
@@ -123,7 +129,6 @@ function mapJikanManga(manga) {
     return {
         _id: manga.mal_id,
         title: manga.title,
-        description: manga.synopsis,
         image_url: manga.image_url,
         status: manga.status,
         published: manga.published.string,
@@ -142,7 +147,6 @@ function compareMangas(manga, malManga) {
     const mangaToUpdate = {}
 
     if (manga.title !== malManga.title) mangaToUpdate.title = malManga.title
-    if (manga.description !== malManga.description) mangaToUpdate.description = malManga.description
     if (manga.image_url !== malManga.image_url) mangaToUpdate.image_url = malManga.image_url
     if (manga.status !== malManga.status) mangaToUpdate.status = malManga.status
     if (manga.published !== malManga.published) mangaToUpdate.published = malManga.published
