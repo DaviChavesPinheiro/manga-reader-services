@@ -77,12 +77,12 @@ module.exports = async app => {
         axios.get(`https://api.jikan.moe/v3/manga/${manga._id}`)
             .then(res => {
                 malManga = res.data
-                sleep(1000)
+                sleep(2000)
                 return axios.get(`https://api.jikan.moe/v3/manga/${manga._id}/recommendations`)
             })
             .then(res => {
                 malManga = { ...malManga, recommendations: res.data.recommendations }
-                sleep(1000)
+                sleep(2000)
                 return axios.get(`https://api.jikan.moe/v3/manga/${manga._id}/characters`)
             })
             .then(res => {
